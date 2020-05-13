@@ -1,0 +1,63 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    /* stop page scrolling */
+    /*   the need for the following line see: https://stackoverflow.com/questions/29008194/disabling-androids-chrome-pull-down-to-refresh-feature#comment75035989_43135756 */
+    touch-action: pan-down;
+}
+
+canvas {
+    display: block;
+}
+
+#images canvas {
+    width: 80px;
+    height: 80px;
+    display: inline;
+}
+
+#AboutGame {
+    visibility: hidden;
+}
+
+.right {
+    position: absolute;
+    right: 0px;
+    width: 150px;
+}
+
+body .container #noticeWin {
+    /* background-color: grey; */
+    /* background-color: red; */
+    position: relative;
+    visibility: hidden;
+    z-index: 999;
+}
+
+body #camArea #label-container {
+    top: 90px;
+    right: 0px;
+    /* background-color: red; */
+    position: absolute;
+    visibility: hidden;
+}
+
+body #camArea #label-container-b {
+    top: 10px;
+    right: 30px;
+    /* background-color: red; */
+    position: absolute;
+    visibility: hidden;
+    font-size: 50px;
+    color: coral;
+}
+
+body #camArea {
+    top: 0px;
+    left: 0px;
+    position: relative;
+    z-index: 500;
+}
