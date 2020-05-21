@@ -32,9 +32,9 @@ class Element {
         rect(this.x, this.y, this.w, this.h);
     }
 
-    update() {
+    /*update() {
 
-    }
+    }*/
 
     setData(data) {
         this.data = data;
@@ -71,12 +71,12 @@ class Element {
             if (this == this.grid.blank) {
                 return;
             }
-            if (this.validity((this.x / this.w), (this.grid.blank.x / this.w))) {
+            /*if (this.validity((this.x / this.w), (this.grid.blank.x / this.w))) {
                 return;
             }
             if (this.validity((this.y / this.h), (this.grid.blank.y / this.h))) {
                 return;
-            }
+            }*/
             this.touched();
             if (!playing) playing = true;
         }
@@ -87,12 +87,12 @@ class Element {
         var position_element_y = this.y / this.h;
         var position_blank_x = this.grid.blank.x / this.w;
         var position_blank_y = this.grid.blank.y / this.h;
-        if (this.validity(position_element_x, position_blank_x) || this.validity(position_element_y, position_blank_y)) {
+        /*if (this.validity(position_element_x, position_blank_x) || this.validity(position_element_y, position_blank_y)) {
             return false;
         }
         if (this == this.grid.blank) {
             return false;
-        }
+        }*/
         if (key == "ArrowUp") {
             if (position_element_y - position_blank_y != 1 || position_element_x != position_blank_x) {
                 return false;
@@ -118,12 +118,12 @@ class Element {
         return true;
     }
 
-    validity(c, b) {
+    /*validity(c, b) {
         if (Math.abs(c - b) == 2) {
             return true;
         }
         return false;
-    }
+    }*/
 
     shiftNorth() {
         for (let r = 0; r < this.grid.num_rows; r++) {

@@ -13,22 +13,6 @@ canvas {
     display: block;
 }
 
-#images canvas {
-    width: 80px;
-    height: 80px;
-    display: inline;
-}
-
-#AboutGame {
-    visibility: hidden;
-}
-
-.right {
-    position: absolute;
-    right: 0px;
-    width: 150px;
-}
-
 body .container #noticeWin {
     /* background-color: grey; */
     /* background-color: red; */

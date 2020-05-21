@@ -21,7 +21,6 @@ class Grid {
     }
 
     initialiseGrid() {
-        let dataIndex = 0;
         for (let r = 0; r < this.num_rows; r++) {
             for (let c = 0; c < this.num_cols; c++) {
                 let x = this.x + this.col_width * c;
@@ -43,8 +42,8 @@ class Grid {
         let dataIndex = 0;
         for (let r = 0; r < this.num_rows; r++) {
             for (let c = 0; c < this.num_cols; c++) {
-                let x = this.x + this.col_width * c;
-                let y = this.y + this.col_height * r;
+                /*let x = this.x + this.col_width * c;
+                let y = this.y + this.col_height * r;*/
                 let e = this.getElementAt(r, c);
                 e.setData(this.data[dataIndex++]);
             }
@@ -115,11 +114,11 @@ class Grid {
 
     }
 
-    update() {
+    /*update() {
         for (let key in this.elements) {
             if (this.elements[key]) this.elements[key].update();
         }
-    }
+    }*/
 
     getNorth(element) {
         if (element.row > 0) {

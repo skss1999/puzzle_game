@@ -3,7 +3,7 @@ let g;
 let frames = 60;
 
 let game_w, game_h;
-let wh_ratio;
+//let wh_ratio;
 
 let img;
 
@@ -20,7 +20,7 @@ let completed = false;
 
 let debug = false;
 
-let options;
+//let options;
 let canvas;
 
 let rows = 3;
@@ -33,7 +33,7 @@ let tableLevelArray = [];
 let timerValue = 5;
 let timer;
 let timerflag = true;
-let timerValueX;
+//let timerValueX;
 
 let timer2;
 let timer2_second = 0;
@@ -95,7 +95,7 @@ function newPicture() {
     rows = table.getString(csvIndex, 2);
     columns = table.getString(csvIndex, 3);
     timer = setInterval(timeIt, 1000);
-    shuffleNum = 20 + (int(table.getString(csvIndex, 0)) - 1) * 10;
+    shuffleNum = tr ? int(table.getString(csvIndex, 0)) + 1 : 20 + (int(table.getString(csvIndex, 0)) - 1) * 10;
 
     timerHeader.innerHTML = 5;
     noticeWin.style.visibility = 'hidden';
@@ -122,9 +122,15 @@ function buttonClicked() {
 
     if (levelSelect) {
         levelSelect = false;
-        let r = floor(random(tableLength));
-        while (r == csvIndex) {
+        /*let r = floor(random(tableLength));
+        while (r == csvIndex/* || int(table.getString(r, 0)) <= int(table.getString(csvIndex, 0))) {
             r = floor(random(tableLength));
+        }*/
+        let r = csvIndex + 1;
+
+        if (r == tableLength) {
+            alert('Game Finished');
+            r = 0;
         }
         csvIndex = r;
         document.getElementById('levelSelector').selectedIndex = r;
@@ -154,8 +160,8 @@ function buttonClicked() {
         newPicture();
         setupGrid();
 
-        document.getElementById("levelSelector").disabled = true;
-        document.getElementById("levelSelector").disabled = false;
+        /*document.getElementById("levelSelector").disabled = true;
+        document.getElementById("levelSelector").disabled = false;*/
 
     });
 }
@@ -183,10 +189,10 @@ function setup() {
     newPicture();
     levelButtonSetup();
     setupGrid();
-    timerValueX = width - 45;
+    //timerValueX = width - 45;
     toggleButton();
 
-    timer3 = setInterval(timer3F, 1000);
+    timer3 = setInterval(timer3F, detectionFrameRate);
 }
 
 function draw() {
@@ -213,7 +219,7 @@ function draw() {
     }
     if (img) {
         if (g) {
-            g.update();
+            //g.update();
             g.show();
         }
         if (shuffling) {
@@ -284,7 +290,7 @@ function keyMove(keyName) {
 
 function keyPressed() {
     if (loadingFlag) return;
-    if (!tp) {
+    //if (!tp) {
         if (key == "ArrowUp" || key == "ArrowDown" || key == "ArrowLeft" || key == "ArrowRight") {
             if (!updating && !completed) {
                 keyMove(key);
@@ -305,31 +311,34 @@ function keyPressed() {
                 buttonClicked();
             }
         }
-    }
+    //}
 }
 
 function startShuffle() {
     loadingFlag = true;
     shuffling = true;
     toShuffle = shuffleNum;
-    frameRate(200); // lower the frame rate so we can see the moves shuffling
+    frameRate(tr ? /*int(table.getString(csvIndex, 0)) * 2 + 2*/4 : 2000); // lower the frame rate so we can see the moves shuffling
 }
 
 function addMove() {
     let r, c;
     let blank_row = g.blank.row;
     let blank_col = g.blank.col;
-    if (random([1, 2]) == 1) {
-        do {
-            r = floor(random(g.num_rows));
-        } while (r == blank_row);
-        c = blank_col;
-    } else {
-        do {
-            c = floor(random(g.num_cols));
-        } while (c == blank_col);
-        r = blank_row;
-    }
+    do {
+        if (random([1, 2]) == 1) {
+            do {
+                r = /*tr ? blank_row + random([-1, 1]) : */floor(random(g.num_rows));
+            } while (r == blank_row);
+            c = blank_col;
+        } else {
+            do {
+                c = /*tr ? blank_col + random([-1, 1]) : */floor(random(g.num_cols));
+            } while (c == blank_col);
+            r = blank_row;
+        }
+    } while (tr && ((r == prevBlank[0] && c == prevBlank[1]) || /*r < 0 || c < 0 || r >= g.num_rows || c >= g.num_cols*/(abs(r - blank_row) != 1 && abs(c - blank_col) == 0) || (abs(r - blank_row) == 0 && abs(c - blank_col) != 1)))
+    prevBlank = [blank_row, blank_col];
     let e = g.getElementAt(r, c);
     e.touched();
 }
@@ -359,6 +368,12 @@ const metadataURL = URL + "metadata.json";
 let model, webcam, ctx, labelContainer, maxPredictions;
 let labelContainerResult;
 
+let camFrameRate = 500;
+let detectionFrameRate = 1000;
+let xkeyList = [];
+let xkeyListLen = 2;
+let xkeyShifted;
+
 async function pose_init() {
     // load the model and metadata
     // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
@@ -387,9 +402,10 @@ async function pose_init() {
 
 async function pose_loop(timestamp) {
     webcam.update(); // update the webcam frame
+    console.log('capture');
     await predict();
     if (tp) {
-        window.requestAnimationFrame(pose_loop);
+        setTimeout(window.requestAnimationFrame, camFrameRate, pose_loop);//temp
     }
 }
 
@@ -403,63 +419,81 @@ async function predict() {
         posenetOutput
     } = await model.estimatePose(webcam.canvas);
     // Prediction 2: run input through teachable machine classification model
-    const prediction = await model.predict(posenetOutput);
-
-    let temp = 0;
-    for (let i = 0; i < maxPredictions; i++) {
-        const classPrediction =
-            prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-        labelContainer.childNodes[i].innerHTML = classPrediction;
-        if (float(str(classPrediction).split(': ')[1]) > temp) {
-            temp = float(str(classPrediction).split(': '));
-            xkey = i;
-        }
-    }
-
-    if (xkey == '0') {
-        document.getElementById('label-container-b').innerHTML = 'RIGHT';
-    } else if (xkey == '1') {
-        document.getElementById('label-container-b').innerHTML = 'LEFT';
-    } else if (xkey == '2') {
-        document.getElementById('label-container-b').innerHTML = 'UP';
-    } else if (xkey == '3') {
-        document.getElementById('label-container-b').innerHTML = 'DOWN';
-    } else if (xkey == '4') {
-        document.getElementById('label-container-b').innerHTML = 'NEXT';
-    } else {
-        document.getElementById('label-container-b').innerHTML = 'NORMAL';
-    }
-
-
     if (timer3Flag) {
         timer3Flag = false;
-        if (str(xkey) == '4' || str(xkey) == '5') {
-            if (str(xkey) == '4') {
-                if (completed && blinkFlag) {
-                    levelSelect = true;
-                    buttonClicked();
+        const prediction = await model.predict(posenetOutput);
+        
+        let temp = 0;
+        let highestProb;
+        for (let i = 0; i < maxPredictions; i++) {
+            const classPrediction =
+                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            labelContainer.childNodes[i].innerHTML = classPrediction;
+            // console.log(str(classPrediction).split(': ')[0])
+            if (float(str(classPrediction).split(': ')[1]) > temp) {
+                temp = float(str(classPrediction).split(': ')[1]);
+                console.log(temp);
+                xkey = i;
+                highestProb =str(classPrediction).split(': ')[0] 
+            }
+        }
+        // console.log(highestProb)
+        document.getElementById('label-container-b').innerHTML = highestProb.toUpperCase();
+        // if (highestProb.lo) {
+        //     document.getElementById('label-container-b').innerHTML = 'RIGHT';
+        // } else if (xkey == '1') {
+        //     document.getElementById('label-container-b').innerHTML = 'LEFT';
+        // } else if (xkey == '2') {
+        //     document.getElementById('label-container-b').innerHTML = 'UP';
+        // } else if (xkey == '3') {
+        //     document.getElementById('label-container-b').innerHTML = 'DOWN';
+        // } else if (xkey == '4') {
+        //     document.getElementById('label-container-b').innerHTML = 'NEXT';
+        // } else {
+        //     document.getElementById('label-container-b').innerHTML = 'NORMAL';
+        // }
+
+
+        let b = true;
+        xkeyList.push(xkey);
+        while (xkeyList.length > xkeyListLen) {
+            xkeyShifted = xkeyList.shift();
+        }
+        for (let i = 0; i < xkeyListLen; i++) if (xkeyList[i] != xkey) {
+            b = false;
+            break;
+        }
+        if (xkeyShifted == xkey) b = false;
+        if (b) {
+
+            if (str(xkey) == '4' || str(xkey) == '5') {
+                if (str(xkey) == '4') {
+                    if (completed && blinkFlag) {
+                        levelSelect = true;
+                        buttonClicked();
+                    }
                 }
-            }
-        } else {
-            if (str(xkey) == '0') {
-                xkey = 'ArrowRight';
-            } else if (str(xkey) == '1') {
-                xkey = 'ArrowLeft';
-            } else if (str(xkey) == '2') {
-                xkey = 'ArrowUp';
-            } else if (str(xkey) == '3') {
-                xkey = 'ArrowDown';
-            }
-            if (playing && !updating && !completed) {
-                keyMove(xkey);
-                if (xkey == "ArrowUp") {
-                    keyHeader.innerHTML = "<path data-name=\"layer1\" d=\"M17.504 26.025l.001-14.287 6.366 6.367L26 15.979 15.997 5.975 6 15.971 8.129 18.1l6.366-6.368v14.291z\" fill=\"#44d88d\"/>";
-                } else if (xkey == "ArrowDown") {
-                    keyHeader.innerHTML = "<path data-name=\"layer1\" d=\"M14.496 5.975l-.001 14.287-6.366-6.367L6 16.021l10.003 10.004L26 16.029 23.871 13.9l-6.366 6.368V5.977z\" fill=\"#44d88d\"/>";
-                } else if (xkey == "ArrowLeft") {
-                    keyHeader.innerHTML = "<path data-name=\"layer1\" d=\"M26.025 14.496l-14.286-.001 6.366-6.366L15.979 6 5.975 16.003 15.971 26l2.129-2.129-6.367-6.366h14.29z\" fill=\"#44d88d\"/>";
-                } else if (xkey == "ArrowRight") {
-                    keyHeader.innerHTML = "<path data-name=\"layer1\" d=\"M5.975 17.504l14.287.001-6.367 6.366L16.021 26l10.004-10.003L16.029 6l-2.128 2.129 6.367 6.366H5.977z\" fill=\"#44d88d\"/>";
+            } else {
+                if (str(xkey) == '1') {
+                    xkey = 'ArrowRight';
+                } else if (str(xkey) == '0') {
+                    xkey = 'ArrowLeft';
+                } else if (str(xkey) == '2') {
+                    xkey = 'ArrowUp';
+                } else if (str(xkey) == '3') {
+                    xkey = 'ArrowDown';
+                }
+                if (playing && !updating && !completed) {
+                    keyMove(xkey);
+                    if (xkey == "ArrowUp") {
+                        keyHeader.innerHTML = "<path data-name=\"layer1\" d=\"M17.504 26.025l.001-14.287 6.366 6.367L26 15.979 15.997 5.975 6 15.971 8.129 18.1l6.366-6.368v14.291z\" fill=\"#44d88d\"/>";
+                    } else if (xkey == "ArrowDown") {
+                        keyHeader.innerHTML = "<path data-name=\"layer1\" d=\"M14.496 5.975l-.001 14.287-6.366-6.367L6 16.021l10.003 10.004L26 16.029 23.871 13.9l-6.366 6.368V5.977z\" fill=\"#44d88d\"/>";
+                    } else if (xkey == "ArrowLeft") {
+                        keyHeader.innerHTML = "<path data-name=\"layer1\" d=\"M26.025 14.496l-14.286-.001 6.366-6.366L15.979 6 5.975 16.003 15.971 26l2.129-2.129-6.367-6.366h14.29z\" fill=\"#44d88d\"/>";
+                    } else if (xkey == "ArrowRight") {
+                        keyHeader.innerHTML = "<path data-name=\"layer1\" d=\"M5.975 17.504l14.287.001-6.367 6.366L16.021 26l10.004-10.003L16.029 6l-2.128 2.129 6.367 6.366H5.977z\" fill=\"#44d88d\"/>";
+                    }
                 }
             }
         }
@@ -479,4 +513,12 @@ function drawPose(pose) {
             tmPose.drawSkeleton(pose.keypoints, minPartConfidence, ctx);
         }
     }
+}
+
+let tr = false;
+let prevBlank = [];
+
+function remember() {
+    tr = document.getElementById('toggleRemember').checked;
+    buttonClicked();
 }
