@@ -50,7 +50,7 @@ let csvIndex = 0;
 
 let loadingFlag = true;
 
-let currentLevel;
+//let currentLevel;
 
 let blinkFlag;
 
@@ -184,7 +184,11 @@ function toggleButton() {
 }
 
 function setup() {
-    canvas = createCanvas(windowHeight, windowHeight);
+    if (windowHeight - 56 < windowWidth) {
+        canvas = createCanvas(windowHeight - 56, windowHeight - 56);
+    } else {
+        canvas = createCanvas(windowWidth, windowWidth);
+    }
     canvas.position(0, 56);
     newPicture();
     levelButtonSetup();
